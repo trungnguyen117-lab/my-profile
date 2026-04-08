@@ -121,23 +121,22 @@ import about from '../data/about.json';
         <span class="text-xs font-mono text-text-3">updated {about.cv.updated}</span>
       </div>
       <div id="cv-panel" class="hidden mt-4 card p-0 overflow-hidden">
-          <iframe
-            src={about.cv.path}
-            class="w-full h-[800px]"
-            title="Nguyen Trung Nguyen — CV"
-          />
-        </div>
+        <iframe
+          src={about.cv.path}
+          class="w-full h-[800px]"
+          title="Nguyen Trung Nguyen — CV"
+        />
       </div>
     </section>
 
     <script>
-      const btn = document.getElementById('cv-toggle');
-      const panel = document.getElementById('cv-panel');
-      const chevron = document.getElementById('cv-chevron');
-      btn?.addEventListener('click', () => {
-        panel?.classList.toggle('hidden');
-        chevron?.classList.toggle('rotate-180');
-      });
+      function initCV() {
+        const btn = document.getElementById('cv-toggle');
+        const panel = document.getElementById('cv-panel');
+        if (!btn || !panel) return;
+        btn.addEventListener('click', () => panel.classList.toggle('hidden'));
+      }
+      document.addEventListener('astro:page-load', initCV);
     </script>
 
   </div>
