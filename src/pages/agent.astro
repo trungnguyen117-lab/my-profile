@@ -66,11 +66,12 @@ import SEO from '../components/SEO.astro';
       const container = document.getElementById('terminal-container');
       if (!container || container.querySelector('.xterm')) return;
 
+      const isMobile = window.innerWidth < 640;
       const term = new Terminal({
         cursorBlink: true,
         cursorStyle: 'bar',
         fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", Menlo, monospace',
-        fontSize: 13,
+        fontSize: isMobile ? 11 : 13,
         lineHeight: 1.5,
         theme: {
           background: '#272822',
@@ -355,8 +356,13 @@ import SEO from '../components/SEO.astro';
 
       // Init
       writeLine('');
-      writeLines(banner);
-      writeLine('');
+      if (!isMobile) {
+        writeLines(banner);
+        writeLine('');
+      } else {
+        writeLine(`  ${BWHITE}trungnguyen${RESET}${DIM}@${RESET}${BWHITE}dev${RESET}  ${DIM}AI Engineer & Researcher${RESET}`);
+        writeLine('');
+      }
       writeLine(`  ${BWHITE}Welcome!${RESET} I'm Nguyen's personal AI agent.`);
       writeLine(`  ${DIM}Ask me anything — type a question or try one of these:${RESET}`);
       writeLine('');
