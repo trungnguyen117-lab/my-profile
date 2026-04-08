@@ -11,7 +11,7 @@
       "period": "2022 — now",
       "title": "B.S. in Information Technology",
       "org": "VNU University of Engineering and Technology (UET)",
-      "note": "CPA: 3.7/4.0 · Latest semester GPA: 3.95/4.0"
+      "note": "CPA: 3.7/4.0 · Latest semester GPA: 4.0/4.0"
     }
   ],
   "experience": [
@@ -70,7 +70,10 @@
   ],
   "stack": [
     { "label": "languages", "value": "Python  TypeScript  Java  SQL" },
-    { "label": "ml / ai  ", "value": "PyTorch  LangChain  LangGraph  LlamaIndex  MCP" },
+    {
+      "label": "ml / ai  ",
+      "value": "PyTorch  LangChain  LangGraph  LlamaIndex  MCP"
+    },
     { "label": "backend  ", "value": "FastAPI  Node.js  RESTful APIs" },
     { "label": "frontend ", "value": "React  Next.js  Tailwind CSS" },
     { "label": "databases", "value": "MySQL  SQLite  Qdrant  Trino" },
