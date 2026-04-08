@@ -1,0 +1,49 @@
+---
+import { getCollection, render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import Terminal from '../../components/Terminal.astro';
+
+export async function getStaticPaths() {
+  const papers = await getCollection('papers');
+  return papers.map(p => ({ params: { id: p.id }, props: { paper: p } }));
+}
+
+const { paper } = Astro.props;
+const { Content } = await render(paper);
+
+const p = paper.data.properties;
+const title = p?.Name?.title?.map((t: any) => t.plain_text).join('') || 'Untitled';
+const authors = p?.Authors?.rich_text?.map((t: any) => t.plain_text).join('') || '';
+const venue = p?.Venue?.select?.name;
+const date = p?.['Publication Date']?.date?.start;
+const status = p?.Status?.select?.name;
+const tags = p?.Tags?.multi_select?.map((t: any) => t.name) || [];
+const pdfLink = p?.['PDF Link']?.url;
+const abstract = p?.Abstract?.rich_text?.map((t: any) => t.plain_text).join('') || '';
+---
+
+<PostLayout title={title} date={date} tags={tags} backLink={{ href: '/research', label: 'Research' }}>
+
+  <!-- Metadata terminal -->
+  <div class="not-prose mb-12">
+    <Terminal title="paper.bib">
+      <div class="space-y-1">
+        {authors && <p><span class="text-[#666]">authors</span>  <span class="text-[#e8e2dd]">{authors}</span></p>}
+        {venue && <p><span class="text-[#666]">venue  </span>  <span class="text-[#e8e2dd]">{venue}</span></p>}
+        {status && <p><span class="text-[#666]">status </span>  <span class="text-[#e8e2dd]">{status}</span></p>}
+        {pdfLink && (
+          <p><span class="text-[#666]">pdf    </span>  <a href={pdfLink} target="_blank" rel="noopener" class="text-[#e8e2dd] underline underline-offset-2 hover:text-white">{pdfLink}</a></p>
+        )}
+      </div>
+    </Terminal>
+  </div>
+
+  {abstract && (
+    <div class="mb-10">
+      <h2>Abstract</h2>
+      <p>{abstract}</p>
+    </div>
+  )}
+
+  <Content />
+</PostLayout>

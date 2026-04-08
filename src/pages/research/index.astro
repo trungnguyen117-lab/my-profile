@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PaperCard from '../../components/PaperCard.astro';
+
+let papers: any[] = [];
+try {
+  const { getCollection } = await import('astro:content');
+  papers = await getCollection('papers');
+} catch {}
+---
+
+<BaseLayout title="Research — Trung Nguyen" description="Research papers and publications">
+  <div class="max-w-[680px] mx-auto">
+    <div class="mb-20 reveal">
+      <p class="font-mono text-xs text-text-3 mb-4 tracking-wider uppercase">research</p>
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-[-0.04em] mb-4">Research.</h1>
+      <p class="text-lg text-text-2">Published papers, preprints, and ongoing work.</p>
+    </div>
+
+    {papers.length > 0 ? (
+      <div class="space-y-3 reveal" data-delay="0.1">
+        {papers.map((p: any) => (
+          <PaperCard
+            id={p.id}
+            title={p.data.properties?.Name?.title?.map((t: any) => t.plain_text).join('') || 'Untitled'}
+            authors={p.data.properties?.Authors?.rich_text?.map((t: any) => t.plain_text).join('')}
+            venue={p.data.properties?.Venue?.select?.name}
+            date={p.data.properties?.['Publication Date']?.date?.start}
+            status={p.data.properties?.Status?.select?.name}
+            tags={p.data.properties?.Tags?.multi_select}
+            pdfLink={p.data.properties?.['PDF Link']?.url}
+          />
+        ))}
+      </div>
+    ) : (
+      <p class="text-text-3 reveal font-mono text-sm" data-delay="0.1">No papers yet. Connect your Notion database.</p>
+    )}
+  </div>
+</BaseLayout>

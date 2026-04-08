@@ -1,0 +1,68 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SEO from '../components/SEO.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, description, image } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <SEO title={title} description={description} image={image} />
+    <ClientRouter />
+  </head>
+  <body class="bg-bg text-text-1 font-sans min-h-screen flex flex-col relative">
+    <!-- Dot grid background -->
+    <div class="dot-grid" aria-hidden="true"></div>
+
+    <!-- Grain texture overlay -->
+    <div class="grain" aria-hidden="true"></div>
+
+    <!-- Vignette overlay -->
+    <div class="vignette" aria-hidden="true"></div>
+
+    <Header />
+    <main class="flex-1 w-full max-w-[720px] mx-auto px-6 py-24 sm:py-32 relative z-10">
+      <slot />
+    </main>
+    <Footer />
+
+    <!-- Scroll-triggered reveal -->
+    <script>
+      function initReveal() {
+        const els = document.querySelectorAll('.reveal');
+        if (!els.length) return;
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const el = entry.target as HTMLElement;
+              const delay = el.dataset.delay || '0';
+              el.style.transitionDelay = delay + 's';
+              el.classList.add('visible');
+              observer.unobserve(el);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+        els.forEach(el => observer.observe(el));
+      }
+
+      initReveal();
+      document.addEventListener('astro:after-swap', initReveal);
+    </script>
+  </body>
+</html>

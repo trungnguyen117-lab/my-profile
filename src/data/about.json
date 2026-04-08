@@ -1,0 +1,83 @@
+{
+  "name": "Nguyen Trung Nguyen",
+  "tagline": "AI Engineer at Viettel Cyber Security · Research Assistant at UET-VNU",
+  "bio": [
+    "I am a <strong>final-year Information Technology student</strong> at <strong>VNU University of Engineering and Technology (UET)</strong>, currently working as an <strong>AI Engineer at Viettel Cyber Security</strong>.",
+    "My focus is on <strong>scalable AI systems</strong> — particularly <strong>RAG pipelines, multi-agent architectures, and intelligent agent frameworks</strong> for real-world enterprise environments.",
+    "I also do research at the <strong>Information Technology Lab (UET)</strong> on DeepResearch Agents and finance-domain RAG systems. I care about building AI that is both <strong>practically useful and technically rigorous</strong>."
+  ],
+  "education": [
+    {
+      "period": "2022 — now",
+      "title": "B.S. in Information Technology",
+      "org": "VNU University of Engineering and Technology (UET)",
+      "note": "CPA: 3.7/4.0 · Latest semester GPA: 3.95/4.0"
+    }
+  ],
+  "experience": [
+    {
+      "period": "Aug 2025 — now",
+      "title": "AI Engineer",
+      "org": "Viettel Cyber Security",
+      "tag": "full-time",
+      "note": "RAG Agents for Confluence knowledge base · SQL Agent for Data Lake House · MCP Server integration (Jira, NocoDB, Confluence, FreshDesk)"
+    },
+    {
+      "period": "Apr — Aug 2025",
+      "title": "AI Engineer",
+      "org": "Viettel Network",
+      "tag": "internship",
+      "note": ""
+    },
+    {
+      "period": "Jun 2024 — now",
+      "title": "Research Assistant",
+      "org": "Information Technology Lab, UET-VNU",
+      "note": "DeepResearch Agents · RAG Agent for UET Finances Agents Platform"
+    }
+  ],
+  "awards": [
+    {
+      "year": "2025",
+      "title": "1st Prize — Student Scientific Research",
+      "org": "Faculty of IT, VNU University of Engineering and Technology"
+    },
+    {
+      "year": "2025–2026",
+      "title": "Outstanding Student Award",
+      "org": "VNU University of Engineering and Technology"
+    },
+    {
+      "year": "2025–2026",
+      "title": "Study Encouragement Scholarship",
+      "org": "VNU University of Engineering and Technology"
+    },
+    {
+      "year": "2025–2026",
+      "title": "Vietcombank Scholarship",
+      "org": "Vietcombank"
+    },
+    {
+      "year": "2023–2024",
+      "title": "Outstanding Student Award",
+      "org": "VNU University of Engineering and Technology"
+    },
+    {
+      "year": "2023–2024",
+      "title": "Study Encouragement Scholarship",
+      "org": "VNU University of Engineering and Technology"
+    }
+  ],
+  "stack": [
+    { "label": "languages", "value": "Python  TypeScript  Java  SQL" },
+    { "label": "ml / ai  ", "value": "PyTorch  LangChain  LangGraph  LlamaIndex  MCP" },
+    { "label": "backend  ", "value": "FastAPI  Node.js  RESTful APIs" },
+    { "label": "frontend ", "value": "React  Next.js  Tailwind CSS" },
+    { "label": "databases", "value": "MySQL  SQLite  Qdrant  Trino" },
+    { "label": "tools    ", "value": "Git  Docker" }
+  ],
+  "cv": {
+    "path": "/NguyenTrungNguyen_CV.pdf",
+    "updated": "April 2026"
+  }
+}

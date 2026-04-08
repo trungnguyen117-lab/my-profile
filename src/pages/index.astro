@@ -1,17 +1,195 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Terminal from '../components/Terminal.astro';
+import PaperCard from '../components/PaperCard.astro';
+import BlogCard from '../components/BlogCard.astro';
 
+let featuredPapers: any[] = [];
+let recentPosts: any[] = [];
+
+try {
+  const { getCollection } = await import('astro:content');
+  const allPapers = await getCollection('papers');
+  featuredPapers = allPapers
+    .filter((p: any) => p.data.properties?.Featured?.checkbox)
+    .slice(0, 3);
+  const allPosts = await getCollection('posts');
+  recentPosts = allPosts.slice(0, 3);
+} catch {}
+
+const roles = [
+  'AI Engineer',
+  'RAG Systems Builder',
+  'Multi-Agent Developer',
+  'ML Researcher',
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Trung Nguyen" description="AI Engineer & Researcher">
+
+  <!-- Hero -->
+  <section class="mb-32 reveal relative">
+    <div class="hero-glow"></div>
+    <p class="section-label mb-8">AI engineer & researcher</p>
+    <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold tracking-[-0.04em] leading-[1.05] mb-6">
+      <span class="inline-block">Trung</span>
+      <span class="inline-block relative">
+        Nguyen
+        <svg class="absolute -bottom-2 left-0 w-full h-3 text-accent opacity-30" viewBox="0 0 200 12" preserveAspectRatio="none">
+          <path d="M0 8 Q50 0, 100 6 T200 4" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </span>
+    </h1>
+    <p class="text-lg text-text-2 leading-relaxed max-w-[540px] mb-10 font-light">
+      Building <span class="text-text-1 font-normal">scalable AI systems</span> — RAG pipelines, multi-agent frameworks, and intelligent backends. Student at <span class="text-text-1 font-normal">UET-VNU</span>, AI Engineer at <span class="text-text-1 font-normal">Viettel Cyber Security</span>.
+    </p>
+    <div class="flex gap-3">
+      <a href="/about" class="btn-primary">
+        About me
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+        </svg>
+      </a>
+      <a href="/research" class="btn-secondary">
+        Research
+      </a>
+    </div>
+  </section>
+
+  <!-- Terminal -->
+  <section class="mb-32 reveal" data-delay="0.1">
+    <Terminal title="about — zsh">
+      <div class="space-y-2">
+        <p><span class="text-[#555]">$</span> whoami</p>
+        <p class="text-[#e8e2dd]">Trung Nguyen — AI Engineer @ Viettel Cyber Security · UET-VNU</p>
+        <p class="mt-3"><span class="text-[#555]">$</span> cat interests.txt</p>
+        <p class="text-[#e8e2dd]">RAG · Multi-Agent Systems · LLMs · AI Security · Fair ML</p>
+        <p class="mt-3"><span class="text-[#555]">$</span> <span id="typed-text"></span><span class="cursor"></span></p>
+      </div>
+    </Terminal>
+  </section>
+
+  <!-- Stats -->
+  <section class="mb-32 reveal" data-delay="0.15">
+    <div class="grid grid-cols-3 gap-4">
+      {[
+        { n: '1', l: 'Publications' },
+        { n: '6+', l: 'Projects' },
+        { n: '3+', l: 'Years Coding' },
+      ].map(s => (
+        <div class="stat-card text-center py-7 px-4">
+          <div class="text-2xl sm:text-3xl font-extrabold tracking-tight stat-number" data-count={s.n}>{s.n}</div>
+          <div class="text-[10px] text-text-3 mt-2 font-mono uppercase tracking-[0.15em]">{s.l}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Featured Research -->
+  {featuredPapers.length > 0 && (
+    <section class="mb-28 reveal" data-delay="0.2">
+      <div class="flex items-baseline justify-between mb-8">
+        <h2 class="section-label">Research</h2>
+        <a href="/research" class="font-mono text-xs text-text-3 hover:text-accent transition-colors duration-300 flex items-center gap-1">
+          view all
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+          </svg>
+        </a>
+      </div>
+      <div class="space-y-3">
+        {featuredPapers.map((p: any) => (
+          <PaperCard
+            id={p.id}
+            title={p.data.properties?.Name?.title?.map((t: any) => t.plain_text).join('') || 'Untitled'}
+            authors={p.data.properties?.Authors?.rich_text?.map((t: any) => t.plain_text).join('')}
+            venue={p.data.properties?.Venue?.select?.name}
+            date={p.data.properties?.['Publication Date']?.date?.start}
+            status={p.data.properties?.Status?.select?.name}
+            tags={p.data.properties?.Tags?.multi_select}
+            pdfLink={p.data.properties?.['PDF Link']?.url}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Recent Posts -->
+  {recentPosts.length > 0 && (
+    <section class="mb-28 reveal" data-delay="0.25">
+      <div class="flex items-baseline justify-between mb-8">
+        <h2 class="section-label">Writing</h2>
+        <a href="/blog" class="font-mono text-xs text-text-3 hover:text-accent transition-colors duration-300 flex items-center gap-1">
+          view all
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+          </svg>
+        </a>
+      </div>
+      <div class="space-y-3">
+        {recentPosts.map((p: any) => (
+          <BlogCard
+            id={p.id}
+            title={p.data.properties?.Name?.title?.map((t: any) => t.plain_text).join('') || 'Untitled'}
+            summary={p.data.properties?.Summary?.rich_text?.map((t: any) => t.plain_text).join('')}
+            date={p.data.properties?.Date?.date?.start}
+            tags={p.data.properties?.Tags?.multi_select}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- Empty state -->
+  {featuredPapers.length === 0 && recentPosts.length === 0 && (
+    <section class="reveal" data-delay="0.2">
+      <Terminal title="setup — zsh">
+        <div class="space-y-2">
+          <p><span class="text-[#555]">$</span> cat .env</p>
+          <p class="text-[#555]"># Add your Notion credentials</p>
+          <p><span class="text-[#e8e2dd]">NOTION_TOKEN</span>=<span class="text-[#555]">ntn_your_token</span></p>
+          <p><span class="text-[#e8e2dd]">NOTION_PAPERS_DB_ID</span>=<span class="text-[#555]">your_id</span></p>
+          <p><span class="text-[#e8e2dd]">NOTION_POSTS_DB_ID</span>=<span class="text-[#555]">your_id</span></p>
+          <p class="mt-3"><span class="text-[#555]">$</span> npm run dev</p>
+          <p class="text-[#2a2d3e]">→ Content will appear once connected.</p>
+        </div>
+      </Terminal>
+    </section>
+  )}
+
+</BaseLayout>
+
+<script define:vars={{ roles }}>
+  let timerId = null;
+
+  function startTyping() {
+    const el = document.getElementById('typed-text');
+    if (!el) return;
+
+    if (timerId) { clearTimeout(timerId); timerId = null; }
+
+    let ri = 0, ci = 0, del = false;
+
+    function tick() {
+      const el = document.getElementById('typed-text');
+      if (!el) return; // element gone (navigated away)
+      const w = roles[ri];
+      if (!del) {
+        el.textContent = w.slice(0, ++ci);
+        if (ci >= w.length) { timerId = setTimeout(() => { del = true; tick(); }, 2200); return; }
+        timerId = setTimeout(tick, 55 + Math.random() * 35);
+      } else {
+        el.textContent = w.slice(0, --ci);
+        if (ci <= 0) { del = false; ri = (ri + 1) % roles.length; timerId = setTimeout(tick, 500); return; }
+        timerId = setTimeout(tick, 25 + Math.random() * 15);
+      }
+    }
+
+    timerId = setTimeout(tick, 1000);
+  }
+
+  document.addEventListener('astro:page-load', startTyping);
+  document.addEventListener('astro:before-swap', () => {
+    if (timerId) { clearTimeout(timerId); timerId = null; }
+  });
+</script>

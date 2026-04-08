@@ -1,0 +1,383 @@
+--- import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import SEO from '../components/SEO.astro';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <SEO title="Agent — Trung Nguyen" description="Ask my AI agent anything" />
+    <ClientRouter />
+  </head>
+  <body style="margin:0; padding:0; background:#272822; overflow:hidden;">
+    <style>
+      html, body { background: #272822 !important; }
+      .grain, .dot-grid, .vignette { display: none !important; }
+      #term-wrap {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      #top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 12px;
+        background: #1e1f1c;
+        border-bottom: 1px solid #3e3d32;
+        font-family: monospace;
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+      #top-bar a { color: #75715e; text-decoration: none; }
+      #top-bar a:hover { color: #f8f8f2; }
+      #top-bar .title { color: #f8f8f2; }
+      #top-bar .title .dot { color: #a6e22e; }
+      #terminal-container {
+        flex: 1;
+        padding: 4px;
+      }
+      /* xterm overrides */
+      .xterm { height: 100%; }
+      .xterm-viewport::-webkit-scrollbar { width: 6px; }
+      .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
+      .xterm-viewport::-webkit-scrollbar-thumb { background: #3e3d32; border-radius: 3px; }
+    </style>
+
+    <div id="term-wrap">
+      <div id="top-bar">
+        <a href="/">&lt;- back</a>
+        <span class="title">nguyen.agent <span class="dot">*</span> online</span>
+        <span></span>
+      </div>
+      <div id="terminal-container"></div>
+    </div>
+
+    <script>
+      import { Terminal } from '@xterm/xterm';
+      import { FitAddon } from '@xterm/addon-fit';
+      import '@xterm/xterm/css/xterm.css';
+
+      function initTerminal() {
+      const container = document.getElementById('terminal-container');
+      if (!container || container.querySelector('.xterm')) return;
+
+      const term = new Terminal({
+        cursorBlink: true,
+        cursorStyle: 'bar',
+        fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", Menlo, monospace',
+        fontSize: 13,
+        lineHeight: 1.5,
+        theme: {
+          background: '#272822',
+          foreground: '#f8f8f2',
+          cursor: '#f8f8f0',
+          cursorAccent: '#272822',
+          selectionBackground: '#49483e',
+          black: '#272822',
+          red: '#f92672',
+          green: '#a6e22e',
+          yellow: '#f4bf75',
+          blue: '#66d9ef',
+          magenta: '#ae81ff',
+          cyan: '#a1efe4',
+          white: '#f8f8f2',
+          brightBlack: '#75715e',
+          brightRed: '#f92672',
+          brightGreen: '#a6e22e',
+          brightYellow: '#e6db74',
+          brightBlue: '#66d9ef',
+          brightMagenta: '#ae81ff',
+          brightCyan: '#a1efe4',
+          brightWhite: '#f9f8f5',
+        },
+      });
+
+      const fitAddon = new FitAddon();
+      term.loadAddon(fitAddon);
+      term.open(container);
+      fitAddon.fit();
+      window.addEventListener('resize', () => fitAddon.fit());
+
+      // Colors
+      const DIM = '\x1b[90m';
+      const RESET = '\x1b[0m';
+      const BOLD = '\x1b[1m';
+      const GREEN = '\x1b[32m';
+      const BLUE = '\x1b[34m';
+      const MAGENTA = '\x1b[35m';
+      const CYAN = '\x1b[36m';
+      const WHITE = '\x1b[37m';
+      const BWHITE = '\x1b[97m';
+      const YELLOW = '\x1b[33m';
+      const RED = '\x1b[31m';
+      const BGREEN = '\x1b[92m';
+      const BBLUE = '\x1b[94m';
+      const BCYAN = '\x1b[96m';
+      const BMAGENTA = '\x1b[95m';
+      const BYELLOW = '\x1b[93m';
+
+      // Fastfetch-style banner: colored ASCII art left + info right
+      const P = '\x1b[35m';   // pink #f92672
+      const G = '\x1b[32m';   // green #a6e22e
+      const B = '\x1b[34m';   // blue #66d9ef
+      const M = '\x1b[95m';   // magenta #ae81ff
+      const Y = '\x1b[33m';   // yellow #f4bf75
+      const BG = '\x1b[92m';  // bright green
+      const BB = '\x1b[94m';  // bright blue
+      const R = RESET;
+
+      const logo = [
+        `${Y}    /\\_/\\${R}`,
+        `${Y}   ( ${BWHITE}o${R}${Y}.${BWHITE}o${R}${Y} )${R}`,
+        `${Y}    > ${P}^${R}${Y} <${R}`,
+        `${Y}   /|   |\\${R}`,
+        `${Y}  (_|   |_)${R}`,
+        ``,
+        `${DIM} nguyen.agent${R}`,
+        ``,
+      ];
+
+      const SEP = `${DIM}------------------------------${RESET}`;
+      const info = [
+        `  ${BWHITE}trungnguyen${RESET}${DIM}@${RESET}${BWHITE}dev${RESET}`,
+        `  ${SEP}`,
+        `  ${CYAN}role${RESET}      AI Engineer & Researcher`,
+        `  ${CYAN}focus${RESET}     RAG · Multi-Agent · LLMs · AI Security`,
+        `  ${CYAN}lang${RESET}      Python · TypeScript · Java · SQL`,
+        `  ${CYAN}tools${RESET}     LangChain · LangGraph · LlamaIndex · MCP`,
+        `  ${CYAN}infra${RESET}     FastAPI · Docker · Qdrant · Trino`,
+        `  ${CYAN}editor${RESET}    VS Code`,
+        `  ${SEP}`,
+        `  ${RED}██${RESET}${GREEN}██${RESET}${YELLOW}██${RESET}${BLUE}██${RESET}${MAGENTA}██${RESET}${CYAN}██${RESET}${WHITE}██${RESET}  ${DIM}${RED}██${RESET}${DIM}${GREEN}██${RESET}${DIM}${YELLOW}██${RESET}${DIM}${BLUE}██${RESET}${DIM}${MAGENTA}██${RESET}${DIM}${CYAN}██${RESET}${DIM}${WHITE}██${RESET}`,
+      ];
+
+      // Merge logo + info side by side
+      const maxLogoWidth = 38;
+      const bannerLines = Math.max(logo.length, info.length);
+      const banner: string[] = [];
+      for (let i = 0; i < bannerLines; i++) {
+        const left = (logo[i] || '').replace(/\x1b\[[0-9;]*m/g, '');
+        const leftColored = logo[i] || '';
+        const pad = ' '.repeat(Math.max(0, maxLogoWidth - left.length));
+        const right = info[i] || '';
+        banner.push(`  ${leftColored}${pad}${right}`);
+      }
+
+      function writeLine(text: string) { term.writeln(text); }
+      function writeLines(lines: string[]) { lines.forEach(l => writeLine(l)); }
+
+      // Knowledge base
+      const knowledge: Record<string, { tool: string; arg: string; lines: string[] }> = {
+        research: {
+          tool: 'Read', arg: 'research-interests.md',
+          lines: [
+            ``,
+            `  Trung's research focuses on ${BOLD}AI Agents${RESET} and ${BOLD}RAG Systems${RESET}.`,
+            ``,
+            `  ${DIM}-${RESET} DeepResearch Agents (IS Lab, UET-VNU)`,
+            `  ${DIM}-${RESET} RAG pipelines for enterprise knowledge bases`,
+            `  ${DIM}-${RESET} AI Security & ICS threat detection`,
+            `  ${DIM}-${RESET} Fair & robust ML models`,
+            ``,
+            `  ${DIM}Published:${RESET} FOAMI @ SOICT 2025 (Springer)`,
+          ]
+        },
+        skills: {
+          tool: 'Grep', arg: 'skills.json',
+          lines: [
+            ``,
+            `  ${BOLD}Languages:${RESET}`,
+            `  ${DIM}-${RESET} Python · TypeScript · Java · SQL`,
+            ``,
+            `  ${BOLD}ML / AI:${RESET}`,
+            `  ${DIM}-${RESET} PyTorch · LangChain · LangGraph · LlamaIndex · MCP`,
+            ``,
+            `  ${BOLD}Backend & Infra:${RESET}`,
+            `  ${DIM}-${RESET} FastAPI · Node.js · Docker`,
+            `  ${DIM}-${RESET} MySQL · SQLite · Qdrant · Trino`,
+            ``,
+            `  ${BOLD}Frontend:${RESET}`,
+            `  ${DIM}-${RESET} React · Next.js · Tailwind CSS`,
+          ]
+        },
+        contact: {
+          tool: 'Read', arg: 'contact.md',
+          lines: [
+            ``,
+            `  ${DIM}-${RESET} ${BOLD}Email:${RESET}     teago372@gmail.com`,
+            `  ${DIM}-${RESET} ${BOLD}GitHub:${RESET}    github.com/trungnguyen117-lab`,
+            `  ${DIM}-${RESET} ${BOLD}LinkedIn:${RESET}  linkedin.com/in/nguyễn-trung-nguyên-132b4124b`,
+          ]
+        },
+        education: {
+          tool: 'Read', arg: 'education.md',
+          lines: [
+            ``,
+            `  ${BOLD}B.S. in Information Technology${RESET}`,
+            `  VNU University of Engineering and Technology (UET)`,
+            `  ${DIM}Sept 2022 — present${RESET}`,
+            ``,
+            `  CPA: ${BGREEN}3.7 / 4.0${RESET} · Latest GPA: ${BGREEN}3.95 / 4.0${RESET}`,
+            `  A+ in DSA · Calculus I & II · Probability · Signals & Systems`,
+          ]
+        },
+        experience: {
+          tool: 'Bash', arg: 'git log --oneline career.md',
+          lines: [
+            ``,
+            `  ${BOLD}AI Engineer${RESET} @ Viettel Cyber Security  ${DIM}Aug 2025 — now${RESET}`,
+            `  ${DIM}-${RESET} RAG Agents for Confluence knowledge base`,
+            `  ${DIM}-${RESET} SQL Agent for Data Lake House`,
+            `  ${DIM}-${RESET} MCP Server integration (Jira, NocoDB, FreshDesk)`,
+            ``,
+            `  ${BOLD}AI Engineer${RESET} ${DIM}[intern]${RESET} @ Viettel Network  ${DIM}Apr — Aug 2025${RESET}`,
+            ``,
+            `  ${BOLD}Research Assistant${RESET} @ IS Lab, UET-VNU  ${DIM}Jun 2024 — now${RESET}`,
+            `  ${DIM}-${RESET} DeepResearch Agents`,
+            `  ${DIM}-${RESET} RAG Agent for UET Finances Platform`,
+          ]
+        },
+        publications: {
+          tool: 'Glob', arg: 'papers/**/*.md',
+          lines: [
+            ``,
+            `  ${BOLD}FOAMI${RESET}: Enhancing ICS Threat Detection via Feature`,
+            `  Optimization, Realistic Augmentation, and Mutual Inference`,
+            ``,
+            `  ${DIM}Venue:${RESET}  SOICT 2025 · Springer`,
+            `  ${DIM}Result:${RESET} Detection rate ${BGREEN}89.00%${RESET} · FAR ${BGREEN}0.99%${RESET}`,
+            ``,
+            `  ${DIM}See ${BLUE}/research${RESET}${DIM} for details.${RESET}`,
+          ]
+        },
+        default: {
+          tool: 'Grep', arg: 'knowledge-base/',
+          lines: [
+            ``,
+            `  ${DIM}Try asking about:${RESET}`,
+            `  ${DIM}-${RESET} ${CYAN}research${RESET}  ${CYAN}skills${RESET}  ${CYAN}experience${RESET}  ${CYAN}education${RESET}  ${CYAN}contact${RESET}`,
+            `  ${DIM}-${RESET} Or visit ${BLUE}/about${RESET} for full profile`,
+          ]
+        },
+      };
+
+      function matchTopic(q: string): string {
+        const l = q.toLowerCase();
+        if (/research|study|topic|field|focus|interest|work on|paper/.test(l)) return 'research';
+        if (/skill|tech|stack|language|tool|framework|program/.test(l)) return 'skills';
+        if (/contact|email|reach|connect|hire|collaborat/.test(l)) return 'contact';
+        if (/educat|school|university|degree|study|learn/.test(l)) return 'education';
+        if (/experience|work|job|career|year|background/.test(l)) return 'experience';
+        if (/publi|cite|journal|conference|venue/.test(l)) return 'publications';
+        return 'default';
+      }
+
+      const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+      // Spinner animation
+      async function showToolCall(tool: string, arg: string): Promise<void> {
+        const frames = ['|', '/', '-', '\\'];
+        let i = 0;
+        const duration = 600 + Math.random() * 500;
+        const start = Date.now();
+
+        return new Promise(resolve => {
+          const interval = setInterval(() => {
+            const elapsed = Date.now() - start;
+            term.write(`\r  ${BLUE}${frames[i % frames.length]}${RESET} ${MAGENTA}${tool}${RESET} ${DIM}${arg}${RESET}   `);
+            i++;
+            if (elapsed >= duration) {
+              clearInterval(interval);
+              term.write(`\r  ${GREEN}done${RESET} ${MAGENTA}${tool}${RESET} ${DIM}${arg}${RESET}   \n`);
+              resolve();
+            }
+          }, 80);
+        });
+      }
+
+      // Typewriter effect for response
+      async function typeResponse(lines: string[]) {
+        for (const line of lines) {
+          writeLine(line);
+          await wait(30 + Math.random() * 20);
+        }
+      }
+
+      async function handleInput(input: string) {
+        if (!input.trim()) { showPrompt(); return; }
+
+        const topic = matchTopic(input);
+        const data = knowledge[topic];
+
+        writeLine('');
+        await showToolCall(data.tool, data.arg);
+        await typeResponse(data.lines);
+        writeLine('');
+        showPrompt();
+      }
+
+      // Input handling
+      let currentInput = '';
+      let isProcessing = false;
+
+      function showPrompt() {
+        term.write(`${GREEN}>${RESET} `);
+        currentInput = '';
+      }
+
+      term.onKey(({ key, domEvent }) => {
+        const code = domEvent.keyCode;
+
+        if (code === 13) { // Enter
+          if (isProcessing) return;
+          writeLine('');
+          const q = currentInput;
+          currentInput = '';
+          isProcessing = true;
+          handleInput(q).finally(() => { isProcessing = false; });
+        } else if (code === 8) { // Backspace
+          if (!isProcessing && currentInput.length > 0) {
+            currentInput = currentInput.slice(0, -1);
+            term.write('\b \b');
+          }
+        } else if (domEvent.key.length === 1 && !domEvent.ctrlKey && !domEvent.metaKey) {
+          if (!isProcessing) {
+            currentInput += domEvent.key;
+            term.write(domEvent.key);
+          }
+        }
+      });
+
+      // Init
+      writeLine('');
+      writeLines(banner);
+      writeLine('');
+      writeLine(`  ${BWHITE}Welcome!${RESET} I'm Nguyen's personal AI agent.`);
+      writeLine(`  ${DIM}Ask me anything — type a question or try one of these:${RESET}`);
+      writeLine('');
+      writeLine(`  ${DIM}>${RESET} ${CYAN}research${RESET}  ${CYAN}skills${RESET}  ${CYAN}contact${RESET}  ${CYAN}education${RESET}  ${CYAN}experience${RESET}`);
+      writeLine('');
+      showPrompt();
+      term.focus();
+      } // end initTerminal
+
+      // Run on first load and on every View Transition navigation
+      document.addEventListener('astro:page-load', () => {
+        // Small delay to ensure DOM is fully ready
+        setTimeout(initTerminal, 50);
+      });
+
+      // Also run immediately for non-transition loads
+      if (document.readyState === 'complete') {
+        setTimeout(initTerminal, 50);
+      } else {
+        window.addEventListener('load', () => setTimeout(initTerminal, 50));
+      }
+    </script>
+  </body>
+</html>
