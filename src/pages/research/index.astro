@@ -57,44 +57,46 @@ try {
 </div>
 
 <script>
-  const modal = document.getElementById('pdf-modal')!;
-  const frame = document.getElementById('pdf-modal-frame') as HTMLIFrameElement;
-  const titleEl = document.getElementById('pdf-modal-title')!;
-  const closeBtn = document.getElementById('pdf-modal-close')!;
-
   function toEmbedUrl(url: string): string {
-    // Google Drive: /file/d/FILE_ID/view → /file/d/FILE_ID/preview
     const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/?]+)/);
-    if (driveMatch) {
-      return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
-    }
-    // Google Drive open?id= format
+    if (driveMatch) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
     const openMatch = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
-    if (openMatch) {
-      return `https://drive.google.com/file/d/${openMatch[1]}/preview`;
-    }
+    if (openMatch) return `https://drive.google.com/file/d/${openMatch[1]}/preview`;
     return url;
   }
 
-  document.addEventListener('open-pdf-modal', (e: Event) => {
-    const { url, title } = (e as CustomEvent).detail;
-    frame.src = toEmbedUrl(url);
-    titleEl.textContent = title;
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  });
+  function initPdfModal() {
+    const modal = document.getElementById('pdf-modal');
+    const frame = document.getElementById('pdf-modal-frame') as HTMLIFrameElement;
+    const titleEl = document.getElementById('pdf-modal-title');
+    const closeBtn = document.getElementById('pdf-modal-close');
+    if (!modal || !frame || !titleEl || !closeBtn) return;
 
-  function closeModal() {
-    modal.classList.add('hidden');
-    frame.src = '';
-    document.body.style.overflow = '';
+    function closeModal() {
+      modal!.classList.add('hidden');
+      frame.src = '';
+      document.body.style.overflow = '';
+    }
+
+    // Use AbortController to clean up listeners on next swap
+    const ac = new AbortController();
+    const { signal } = ac;
+
+    document.addEventListener('open-pdf-modal', (e: Event) => {
+      const { url, title } = (e as CustomEvent).detail;
+      frame.src = toEmbedUrl(url);
+      titleEl!.textContent = title;
+      modal!.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }, { signal });
+
+    closeBtn.addEventListener('click', closeModal, { signal });
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); }, { signal });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); }, { signal });
+
+    // Clean up before next page swap
+    document.addEventListener('astro:before-swap', () => ac.abort(), { once: true });
   }
 
-  closeBtn.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
+  document.addEventListener('astro:page-load', initPdfModal);
 </script>
