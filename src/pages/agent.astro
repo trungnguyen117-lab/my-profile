@@ -41,6 +41,13 @@ import SEO from '../components/SEO.astro';
         flex: 1;
         padding: 4px;
       }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+      }
+      #status-dot { animation: pulse 2s ease-in-out infinite; }
+      #status-dot.thinking { background: #f4bf75 !important; animation: pulse 0.6s ease-in-out infinite; }
+
       /* xterm overrides */
       .xterm { height: 100%; }
       .xterm-viewport::-webkit-scrollbar { width: 6px; }
@@ -50,9 +57,18 @@ import SEO from '../components/SEO.astro';
 
     <div id="term-wrap">
       <div id="top-bar">
-        <a href="/">&lt;- back</a>
-        <span class="title">nguyen.agent <span class="dot">*</span> online</span>
-        <span></span>
+        <a href="/">← back</a>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="title">nguyen.agent</span>
+          <span id="status-badge" style="display:flex;align-items:center;gap:5px;font-size:11px;color:#75715e;">
+            <span id="status-dot" style="width:7px;height:7px;border-radius:50%;background:#a6e22e;display:inline-block;"></span>
+            online
+          </span>
+          <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:#3e3d32;color:#66d9ef;font-family:monospace;border:1px solid #49483e;">
+            nvidia/nemotron-3-super-120b-a12b
+          </span>
+        </div>
+        <span style="font-size:11px;color:#49483e;">esc to clear</span>
       </div>
       <div id="terminal-container"></div>
     </div>
@@ -319,7 +335,7 @@ import SEO from '../components/SEO.astro';
         let fi = 0;
         let spinning = true;
         const spinInterval = setInterval(() => {
-          term.write(`\r  ${BLUE}${frames[fi++ % frames.length]}${RESET} ${MAGENTA}OpenRouter${RESET} ${DIM}generate-content${RESET}   `);
+          term.write(`\r  ${BLUE}${frames[fi++ % frames.length]}${RESET} ${MAGENTA}agent${RESET} ${DIM}thinking...${RESET}   `);
         }, 80);
 
         try {
@@ -331,7 +347,7 @@ import SEO from '../components/SEO.astro';
 
           clearInterval(spinInterval);
           spinning = false;
-          term.write(`\r  ${GREEN}done${RESET} ${MAGENTA}OpenRouter${RESET} ${DIM}generate-content${RESET}   \n`);
+          term.write(`\r${' '.repeat(40)}\r`);
 
           if (!res.ok || !res.body) {
             const errText = await res.text();
@@ -365,6 +381,18 @@ import SEO from '../components/SEO.astro';
         showPrompt();
       }
 
+      // Status dot
+      const statusDot = document.getElementById('status-dot');
+      const statusBadge = document.getElementById('status-badge');
+      function setThinking(on: boolean) {
+        if (on) {
+          statusDot?.classList.add('thinking');
+          if (statusBadge) statusBadge.innerHTML = '<span id="status-dot" style="width:7px;height:7px;border-radius:50%;background:#f4bf75;display:inline-block;" class="thinking"></span> thinking';
+        } else {
+          if (statusBadge) statusBadge.innerHTML = '<span id="status-dot" style="width:7px;height:7px;border-radius:50%;background:#a6e22e;display:inline-block;"></span> online';
+        }
+      }
+
       // Input handling
       let currentInput = '';
       let isProcessing = false;
@@ -383,7 +411,8 @@ import SEO from '../components/SEO.astro';
           const q = currentInput;
           currentInput = '';
           isProcessing = true;
-          handleInput(q).finally(() => { isProcessing = false; });
+          setThinking(true);
+          handleInput(q).finally(() => { isProcessing = false; setThinking(false); });
         } else if (code === 8) { // Backspace
           if (!isProcessing && currentInput.length > 0) {
             currentInput = currentInput.slice(0, -1);

@@ -88,6 +88,7 @@ export const POST: APIRoute = async ({ request }) => {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-cache",
       "X-Content-Type-Options": "nosniff",
+      "X-Accel-Buffering": "no",
     },
   });
 };
