@@ -312,12 +312,44 @@ import SEO from '../components/SEO.astro';
       async function handleInput(input: string) {
         if (!input.trim()) { showPrompt(); return; }
 
-        const topic = matchTopic(input);
-        const data = knowledge[topic];
-
         writeLine('');
-        await showToolCall(data.tool, data.arg);
-        await typeResponse(data.lines);
+        await showToolCall('Gemini', 'generate-content');
+
+        try {
+          const res = await fetch('/api/agent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: input }),
+          });
+
+          if (!res.ok || !res.body) throw new Error('API error');
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          term.write('  ');
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            for (const char of chunk) {
+              if (char === '\n') {
+                writeLine('');
+                term.write('  ');
+                buffer = '';
+              } else {
+                term.write(char);
+                buffer += char;
+                await wait(8 + Math.random() * 8);
+              }
+            }
+          }
+          writeLine('');
+        } catch (e) {
+          writeLine(`  ${RED}Error: could not reach agent.${RESET}`);
+        }
+
         writeLine('');
         showPrompt();
       }
