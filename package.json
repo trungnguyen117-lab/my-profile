@@ -21,6 +21,7 @@
     "@fontsource-variable/source-serif-4": "^5.2.9",
     "@google/generative-ai": "^0.24.1",
     "@notionhq/client": "^5.16.0",
+    "@openrouter/sdk": "^0.11.2",
     "@tailwindcss/vite": "^4.2.2",
     "@vercel/analytics": "^2.0.1",
     "@xterm/addon-fit": "^0.11.0",

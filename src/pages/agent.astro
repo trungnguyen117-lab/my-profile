@@ -313,7 +313,14 @@ import SEO from '../components/SEO.astro';
         if (!input.trim()) { showPrompt(); return; }
 
         writeLine('');
-        await showToolCall('Gemini', 'generate-content');
+
+        // Spinner frames inline (không dùng showToolCall để tự control)
+        const frames = ['|', '/', '-', '\\'];
+        let fi = 0;
+        let spinning = true;
+        const spinInterval = setInterval(() => {
+          term.write(`\r  ${BLUE}${frames[fi++ % frames.length]}${RESET} ${MAGENTA}OpenRouter${RESET} ${DIM}generate-content${RESET}   `);
+        }, 80);
 
         try {
           const res = await fetch('/api/agent', {
@@ -322,11 +329,17 @@ import SEO from '../components/SEO.astro';
             body: JSON.stringify({ message: input }),
           });
 
-          if (!res.ok || !res.body) throw new Error('API error');
+          clearInterval(spinInterval);
+          spinning = false;
+          term.write(`\r  ${GREEN}done${RESET} ${MAGENTA}OpenRouter${RESET} ${DIM}generate-content${RESET}   \n`);
+
+          if (!res.ok || !res.body) {
+            const errText = await res.text();
+            throw new Error(`${res.status}: ${errText}`);
+          }
 
           const reader = res.body.getReader();
           const decoder = new TextDecoder();
-          let buffer = '';
 
           term.write('  ');
           while (true) {
@@ -337,17 +350,15 @@ import SEO from '../components/SEO.astro';
               if (char === '\n') {
                 writeLine('');
                 term.write('  ');
-                buffer = '';
               } else {
                 term.write(char);
-                buffer += char;
-                await wait(8 + Math.random() * 8);
               }
             }
           }
           writeLine('');
         } catch (e) {
-          writeLine(`  ${RED}Error: could not reach agent.${RESET}`);
+          if (spinning) { clearInterval(spinInterval); spinning = false; }
+          writeLine(`\r  ${RED}Error: ${(e as Error).message}${RESET}`);
         }
 
         writeLine('');

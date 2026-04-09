@@ -1,4 +1,4 @@
-import type { APIRoute } from 'astro';
+import type { APIRoute } from "astro";
 
 export const prerender = false;
 
@@ -22,52 +22,58 @@ About Nguyen Trung Nguyen:
 export const POST: APIRoute = async ({ request }) => {
   const apiKey = import.meta.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return new Response('OPENROUTER_API_KEY not configured', { status: 500 });
+    return new Response("OPENROUTER_API_KEY not configured", { status: 500 });
   }
 
   const { message } = await request.json();
   if (!message?.trim()) {
-    return new Response('No message', { status: 400 });
+    return new Response("No message", { status: 400 });
   }
 
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
+  const upstream = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "nvidia/nemotron-3-super-120b-a12b:free",
+        stream: true,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: message },
+        ],
+      }),
     },
-    body: JSON.stringify({
-      model: 'meta-llama/llama-3.1-8b-instruct:free',
-      stream: true,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: message },
-      ],
-    }),
-  });
+  );
 
-  if (!res.ok) {
-    const err = await res.text();
-    return new Response('OpenRouter error: ' + err, { status: 500 });
+  if (!upstream.ok || !upstream.body) {
+    const err = await upstream.text();
+    return new Response("OpenRouter error: " + err, { status: 500 });
   }
 
+  const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const reader = res.body!.getReader();
+      const reader = upstream.body!.getReader();
       const decoder = new TextDecoder();
+      let buf = "";
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          const lines = decoder.decode(value).split('\n');
+          buf += decoder.decode(value, { stream: true });
+          const lines = buf.split("\n");
+          buf = lines.pop() ?? "";
           for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6);
-            if (data === '[DONE]') break;
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") continue;
             try {
-              const json = JSON.parse(data);
-              const text = json.choices?.[0]?.delta?.content;
-              if (text) controller.enqueue(new TextEncoder().encode(text));
+              const text = JSON.parse(data).choices?.[0]?.delta?.content;
+              if (text) controller.enqueue(encoder.encode(text));
             } catch {}
           }
         }
@@ -78,6 +84,10 @@ export const POST: APIRoute = async ({ request }) => {
   });
 
   return new Response(stream, {
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "X-Content-Type-Options": "nosniff",
+    },
   });
 };
