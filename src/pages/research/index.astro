@@ -37,3 +37,50 @@ try {
     )}
   </div>
 </BaseLayout>
+
+<!-- PDF Modal -->
+<div
+  id="pdf-modal"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+>
+  <div class="relative w-full max-w-4xl h-[85vh] bg-bg-1 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+      <span id="pdf-modal-title" class="text-sm font-mono text-text-2 truncate"></span>
+      <button
+        id="pdf-modal-close"
+        class="ml-4 shrink-0 text-text-3 hover:text-text-1 transition-colors duration-200 text-xl leading-none"
+        aria-label="Close"
+      >&times;</button>
+    </div>
+    <iframe id="pdf-modal-frame" src="" class="flex-1 w-full border-0"></iframe>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('pdf-modal')!;
+  const frame = document.getElementById('pdf-modal-frame') as HTMLIFrameElement;
+  const titleEl = document.getElementById('pdf-modal-title')!;
+  const closeBtn = document.getElementById('pdf-modal-close')!;
+
+  document.addEventListener('open-pdf-modal', (e: Event) => {
+    const { url, title } = (e as CustomEvent).detail;
+    frame.src = url;
+    titleEl.textContent = title;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  });
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    frame.src = '';
+    document.body.style.overflow = '';
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
