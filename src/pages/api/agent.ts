@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const prerender = false;
 
@@ -21,9 +20,9 @@ About Nguyen Trung Nguyen:
 - IELTS 6.5`;
 
 export const POST: APIRoute = async ({ request }) => {
-  const apiKey = import.meta.env.GEMINI_API_KEY;
+  const apiKey = import.meta.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return new Response('GEMINI_API_KEY not configured', { status: 500 });
+    return new Response('OPENROUTER_API_KEY not configured', { status: 500 });
   }
 
   const { message } = await request.json();
@@ -31,22 +30,47 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response('No message', { status: 400 });
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    systemInstruction: SYSTEM_PROMPT,
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'meta-llama/llama-3.1-8b-instruct:free',
+      stream: true,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: message },
+      ],
+    }),
   });
+
+  if (!res.ok) {
+    const err = await res.text();
+    return new Response('OpenRouter error: ' + err, { status: 500 });
+  }
 
   const stream = new ReadableStream({
     async start(controller) {
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
       try {
-        const result = await model.generateContentStream(message);
-        for await (const chunk of result.stream) {
-          const text = chunk.text();
-          if (text) controller.enqueue(new TextEncoder().encode(text));
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const lines = decoder.decode(value).split('\n');
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6);
+            if (data === '[DONE]') break;
+            try {
+              const json = JSON.parse(data);
+              const text = json.choices?.[0]?.delta?.content;
+              if (text) controller.enqueue(new TextEncoder().encode(text));
+            } catch {}
+          }
         }
-      } catch (e) {
-        controller.enqueue(new TextEncoder().encode('Error: ' + (e as Error).message));
       } finally {
         controller.close();
       }
