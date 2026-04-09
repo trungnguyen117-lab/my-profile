@@ -66,5 +66,37 @@ const { title, description, image } = Astro.props;
       initReveal();
       document.addEventListener('astro:after-swap', initReveal);
     </script>
+
+    <!-- Page title typing effect -->
+    <script>
+      let titleTimer: ReturnType<typeof setTimeout> | null = null;
+
+      function typeTitle() {
+        if (titleTimer) { clearTimeout(titleTimer); titleTimer = null; }
+
+        const h1 = document.querySelector('main h1');
+        if (!h1) return;
+
+        const full = h1.textContent || '';
+        if (!full) return;
+
+        h1.textContent = '';
+        h1.style.minWidth = '1ch';
+
+        let i = 0;
+        function tick() {
+          if (!document.querySelector('main h1')) return;
+          h1.textContent = full.slice(0, ++i);
+          if (i < full.length) titleTimer = setTimeout(tick, 35 + Math.random() * 25);
+          else { titleTimer = null; h1.style.minWidth = ''; }
+        }
+        titleTimer = setTimeout(tick, 150);
+      }
+
+      document.addEventListener('astro:page-load', typeTitle);
+      document.addEventListener('astro:before-swap', () => {
+        if (titleTimer) { clearTimeout(titleTimer); titleTimer = null; }
+      });
+    </script>
   </body>
 </html>
